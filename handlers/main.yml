@@ -7,4 +7,4 @@
 - name: reload ufw
   service:
     name: ufw
-    state: reload
+    state: reloaded
