@@ -1,0 +1,88 @@
+---
+- name: (WEBSERVER) Install Nginx Web server and PHP-FPM
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - nginx
+    - php-fpm
+    - php-mysql
+    - php-pear
+    - php-cgi
+    - ufw
+
+- name: (WEBSERVER) Remove the default Websites
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: (WEBSERVER) DEBUG - Allow RSYNC for new super user without SUDO password
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    insertafter: '^%sudo'
+    line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
+  changed_when: false
+
+- name: (WEBSERVER) Copy some template for Web servers
+  synchronize:
+    src: files/nginx_templates/
+    dest: /root/
+    links: yes
+    recursive: yes
+
+- name: (WEBSERVER) DEBUG - Disallow RSYNC for new super user without SUDO password
+  lineinfile:
+    path: /etc/sudoers
+    state: absent
+    insertafter: '^%sudo'
+    line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
+  changed_when: false
+
+- name: (WEBSERVER) Copy the Diffie-Hellmann parameters
+  copy:
+    src: dhparams.pem
+    dest: /etc/ssl/dhparams.pem
+    owner: root
+    group: root
+    mode: 0644
+
+- name: (WEBSERVER) Open the HTTP port on the firewall
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+    direction: in
+  notify: reload ufw
+
+- name: (WEBSERVER) Open the HTTPS port on the firewall
+  ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+    direction: in
+  notify: reload ufw
+
+- name: (USERSKEL) DEBUG - Allow RSYNC for new super user without SUDO password
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    insertafter: '^%sudo'
+    line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
+  changed_when: false
+
+- name: (USERSKEL) Copy the user's skeleton template for Web servers
+  synchronize:
+    src: files/user_skel/
+    dest: /etc/skel/
+    links: yes
+    recursive: yes
+
+- name: (USERSKEL) DEBUG - Disallow RSYNC for new super user without SUDO password
+  lineinfile:
+    path: /etc/sudoers
+    state: absent
+    insertafter: '^%sudo'
+    line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
+  changed_when: false
