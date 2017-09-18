@@ -1,23 +1,24 @@
 ---
-- name: (NGINX) Install Nginx Web server and PHP-FPM
+- name: (APACHE) Install Apache Web server and PHP-FPM
   package:
     name: "{{ item }}"
     state: latest
   with_items:
-    - nginx
+    - apache2
     - php-fpm
     - php-mysql
     - php-pear
     - php-cgi
     - ufw
+  when: ansible_os_family == "Debian"
 
-- name: (NGINX) Remove the default Websites
+- name: (APACHE) Remove the default Websites
   file:
-    path: /etc/nginx/sites-enabled/default
+    path: /etc/apache2/sites-enabled/000-default.conf
     state: absent
-  notify: reload nginx
+  notify: reload apache
 
-- name: (NGINX) DEBUG - Allow RSYNC for new super user without SUDO password
+- name: (APACHE) DEBUG - Allow RSYNC for new super user without SUDO password
   lineinfile:
     path: /etc/sudoers
     state: present
@@ -25,14 +26,14 @@
     line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
   changed_when: false
 
-- name: (NGINX) Copy some template for Web servers
+- name: (APACHE) Copy some template for Web servers
   synchronize:
-    src: files/nginx_templates/
+    src: files/apache_templates/
     dest: /root/
     links: yes
     recursive: yes
 
-- name: (NGINX) DEBUG - Disallow RSYNC for new super user without SUDO password
+- name: (APACHE) DEBUG - Disallow RSYNC for new super user without SUDO password
   lineinfile:
     path: /etc/sudoers
     state: absent
@@ -40,7 +41,7 @@
     line: "{{ ansible_user }} ALL=NOPASSWD: /usr/bin/rsync"
   changed_when: false
 
-- name: (NGINX) Copy the Diffie-Hellmann parameters
+- name: (APACHE) Copy the Diffie-Hellmann parameters
   copy:
     src: dhparams.pem
     dest: /etc/ssl/dhparams.pem
@@ -48,7 +49,25 @@
     group: root
     mode: 0644
 
-- name: (NGINX) Open the HTTP port on the firewall
+- name: (APACHE) Check enabled modules
+  stat:
+    path: /etc/apache2/mods-enabled/{{ item }}
+  with_items:
+    - ssl.load
+    - actions.load
+    - proxy_fcgi.load
+    - env.load
+    - rewrite.load
+    - headers.load
+  register: modules
+
+- name: (APACHE) Enable missing modules
+  command: a2enmod {{ item.item }}
+  with_items: "{{ modules.results }}"
+  notify: restart apache
+  when: not item.stat.exists
+
+- name: (APACHE) Open the HTTP port on the firewall
   ufw:
     rule: allow
     port: 80
@@ -56,7 +75,7 @@
     direction: in
   notify: reload ufw
 
-- name: (NGINX) Open the HTTPS port on the firewall
+- name: (APACHE) Open the HTTPS port on the firewall
   ufw:
     rule: allow
     port: 443

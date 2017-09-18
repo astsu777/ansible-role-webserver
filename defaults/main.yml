@@ -1,0 +1,5 @@
+---
+# Default variables for this role
+
+# Define the Web server to be installed
+webserver: nginx
