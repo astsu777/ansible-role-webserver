@@ -25,9 +25,9 @@ By default, this role will install and configure Nginx. However, a variable can 
 
 Here is the variable as defined by default in this role:
 
-'''
+```
 webserver: nginx
-'''
+```
 
 If you prefer to install Apache instead of Nginx, set the value of this variable to *apache*.
 
