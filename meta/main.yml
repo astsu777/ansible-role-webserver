@@ -1,6 +1,6 @@
 galaxy_info:
   author: Gaétan
-  description: Install and configure a Webserver (by default, Nginx)
+  description: Install and configure a Webserver (Nginx OR Apache)
 
   license: license (MIT, BSD)
 
@@ -14,6 +14,7 @@ galaxy_info:
   galaxy_tags:
     - linux
     - nginx
+    - apache
     - webserver
     - http
     - https
