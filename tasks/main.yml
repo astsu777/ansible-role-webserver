@@ -1,8 +1,8 @@
 ---
 # Install and configure Nginx Web server (default choice)
-- include: nginx.yml
+- include_tasks: nginx.yml
   when: webserver == "nginx"
 
 # Install and configure Apache Web Server (httpd if Red Hat)
-- include: apache.yml
+- include_tasks: apache.yml
   when: webserver == "apache"
