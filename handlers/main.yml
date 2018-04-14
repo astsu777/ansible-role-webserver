@@ -7,7 +7,7 @@
 - name: reload ufw
   service:
     name: ufw
-    state: restart
+    state: restarted
 
 - name: reload apache
   service:
