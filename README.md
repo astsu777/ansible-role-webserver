@@ -50,6 +50,16 @@ roles:
   - { role: webserver, tags: [ 'webserver' ] }
 ```
 
+TODO
+----
+
+Some hardening & comments remains to be done about Web servers. Here is the list:
+
+- Fake the server information (global config)
+- Configure certain modules (mod_security or other WAF)
+- Update this README to explain various actions (ex.: calculate HPKP)
+
+
 License
 -------
 
